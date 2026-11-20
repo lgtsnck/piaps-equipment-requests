@@ -1,0 +1,32 @@
+@startuml
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam stateBackgroundColor #F0F5FA
+skinparam stateBorderColor #364A63
+skinparam ArrowColor #475569
+hide empty description
+
+state "Создана" as CREATED
+state "На согласовании" as PENDING_APPROVAL
+state "На уточнении" as NEEDS_CLARIFICATION
+state "Согласована" as APPROVED
+state "Отклонена" as REJECTED
+state "Назначена" as ASSIGNED
+state "В работе" as IN_PROGRESS
+state "Закрыта" as CLOSED
+
+[*] --> CREATED
+CREATED --> PENDING_APPROVAL : Отправить на согласование
+PENDING_APPROVAL --> NEEDS_CLARIFICATION : Вернуть на уточнение\n[причина указана]
+NEEDS_CLARIFICATION --> PENDING_APPROVAL : Повторно отправить после уточнения
+PENDING_APPROVAL --> APPROVED : Согласовать
+PENDING_APPROVAL --> REJECTED : Отклонить\n[причина указана]
+APPROVED --> ASSIGNED : Назначить специалиста
+ASSIGNED --> IN_PROGRESS : Начать обработку
+IN_PROGRESS --> CLOSED : Зафиксировать результат
+REJECTED --> [*]
+CLOSED --> [*]
+
+@enduml

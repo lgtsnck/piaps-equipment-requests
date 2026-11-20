@@ -1,8 +1,5 @@
 @startuml
-' ПиАПС. Обработка заявки на приобретение оборудования.
-' Сквозная UML Activity-модель для единого учебного проекта.
 
-title Обработка заявки на приобретение оборудования
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
 skinparam defaultFontName "DejaVu Sans"

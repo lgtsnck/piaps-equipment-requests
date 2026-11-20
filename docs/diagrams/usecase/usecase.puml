@@ -1,0 +1,56 @@
+@startuml
+left to right direction
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam actorStyle stickman
+skinparam packageStyle rectangle
+
+actor "Пользователь\nсистемы" as User
+actor "Заявитель" as Applicant
+actor "Руководитель\nМТС" as Manager
+actor "Специалист\nМТС" as Specialist
+
+Applicant -|> User
+Manager -|> User
+Specialist -|> User
+
+rectangle "Информационная система учёта заявок\nна приобретение оборудования" {
+
+  usecase "Просмотреть заявки\nи их состояние" as UC_View
+  usecase "Найти и отфильтровать\nзаявки" as UC_Search
+
+  usecase "Создать заявку" as UC_Create
+  usecase "Отправить заявку\nна согласование" as UC_Submit
+  usecase "Уточнить и повторно\nнаправить заявку" as UC_Refine
+  usecase "Проверить данные\nзаявки" as UC_Validate
+
+  usecase "Согласовать заявку" as UC_Approve
+  usecase "Отклонить заявку\nс указанием причины" as UC_Reject
+  usecase "Вернуть заявку\nна уточнение" as UC_Return
+  usecase "Назначить специалиста\nМТС" as UC_Assign
+
+  usecase "Начать обработку\nзаявки" as UC_Start
+  usecase "Зафиксировать результат\nи закрыть заявку" as UC_Close
+}
+
+User --> UC_View
+User --> UC_Search
+
+Applicant --> UC_Create
+Applicant --> UC_Submit
+Applicant --> UC_Refine
+
+Manager --> UC_Approve
+Manager --> UC_Reject
+Manager --> UC_Return
+Manager --> UC_Assign
+
+Specialist --> UC_Start
+Specialist --> UC_Close
+
+UC_Create .> UC_Validate : <<include>>
+UC_Refine .> UC_Validate : <<include>>
+
+@enduml

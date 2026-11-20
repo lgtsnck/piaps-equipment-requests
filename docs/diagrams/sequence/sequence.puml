@@ -1,0 +1,76 @@
+@startuml
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam ArrowColor #475569
+skinparam SequenceLifeLineBorderColor #64748B
+skinparam SequenceLifeLineBackgroundColor #F0F5FA
+skinparam ParticipantBorderColor #364A63
+skinparam ParticipantBackgroundColor #F0F5FA
+skinparam ActorBorderColor #364A63
+skinparam sequenceMessageAlign center
+hide footbox
+
+actor "Заявитель" as Applicant
+actor "Руководитель МТС" as Manager
+boundary "Интерфейс" as UI
+control "RequestService" as Service
+entity "EquipmentRequest" as Request
+participant "RequestRepository" as Repository
+
+== Создание заявки ==
+Applicant -> UI : Заполнить и сохранить заявку
+UI -> Service : create_request(applicant_id, equipment_id,\nquantity, justification)
+activate Service
+Service -> Service : Проверить обязательные поля
+create Request
+Service -> Request : <<create>> (status = CREATED)
+Service -> Repository : add(request)
+Repository --> Service : OK
+Service --> UI : request (id, CREATED)
+deactivate Service
+UI --> Applicant : Подтверждение регистрации
+
+== Направление на согласование ==
+Applicant -> UI : Отправить заявку на согласование
+UI -> Service : submit_request(id)
+activate Service
+Service -> Repository : get_by_id(id)
+Repository --> Service : request
+Service -> Request : change_status(PENDING_APPROVAL)
+Request --> Service : OK
+Service -> Repository : save(request)
+Repository --> Service : OK
+Service --> UI : Статус «На согласовании»
+deactivate Service
+
+== Согласование ==
+Manager -> UI : Согласовать заявку
+UI -> Service : approve_request(id)
+activate Service
+Service -> Repository : get_by_id(id)
+Repository --> Service : request
+Service -> Request : change_status(APPROVED)
+Request --> Service : OK
+Service -> Repository : save(request)
+Repository --> Service : OK
+Service --> UI : Статус «Согласована»
+deactivate Service
+
+== Назначение специалиста ==
+Manager -> UI : Назначить специалиста МТС
+UI -> Service : assign_specialist(id, specialist_id)
+activate Service
+Service -> Repository : get_by_id(id)
+Repository --> Service : request
+Service -> Request : assign_specialist(specialist_id)
+Service -> Request : change_status(ASSIGNED)
+Request --> Service : OK
+Service -> Repository : save(request)
+Repository --> Service : OK
+Service --> UI : Статус «Назначена»
+deactivate Service
+UI --> Manager : Подтверждение назначения
+
+@enduml

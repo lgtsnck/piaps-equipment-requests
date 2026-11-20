@@ -1,0 +1,113 @@
+@startuml
+
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam classBackgroundColor #F0F5FA
+skinparam classBorderColor #364A63
+skinparam ArrowColor #475569
+skinparam packageBorderColor #64748B
+hide circle
+
+package "Предметная область" {
+    class Department {
+        +id: int
+        +name: str
+    }
+
+    class User {
+        +id: int
+        +full_name: str
+        +role: UserRole
+        +has_role(role: UserRole): bool
+    }
+
+    enum UserRole {
+        APPLICANT
+        MANAGER
+        SPECIALIST
+    }
+
+    class EquipmentCategory {
+        +id: int
+        +name: str
+    }
+
+    class Equipment {
+        +id: int
+        +name: str
+    }
+
+    class EquipmentRequest {
+        +id: int
+        +created_at: datetime
+        +quantity: int
+        +justification: str
+        +status: RequestStatus
+        +assigned_specialist_id: int [0..1]
+        +decision_reason: str [0..1]
+        +completion_result: str [0..1]
+        +update_details(quantity: int, justification: str): None
+        +assign_specialist(specialist_id: int): None
+        +can_transition_to(next: RequestStatus): bool
+        +change_status(next: RequestStatus): None
+    }
+
+    enum RequestStatus {
+        CREATED
+        PENDING_APPROVAL
+        NEEDS_CLARIFICATION
+        APPROVED
+        REJECTED
+        ASSIGNED
+        IN_PROGRESS
+        CLOSED
+    }
+}
+
+package "Бизнес-логика" {
+    class RequestService {
+        +create_request(applicant_id: int, equipment_id: int, quantity: int, justification: str): EquipmentRequest
+        +update_request(id: int, quantity: int, justification: str): None
+        +submit_request(id: int): None
+        +approve_request(id: int): None
+        +reject_request(id: int, reason: str): None
+        +request_clarification(id: int, reason: str): None
+        +assign_specialist(id: int, specialist_id: int): None
+        +start_processing(id: int): None
+        +close_request(id: int, result: str): None
+        +get_request(id: int): EquipmentRequest
+        +filter_requests(status: RequestStatus, department_id: int, category_id: int): list[EquipmentRequest]
+    }
+}
+
+package "Доступ к данным" {
+    interface RequestRepository {
+        +add(request: EquipmentRequest): None
+        +get_by_id(id: int): EquipmentRequest
+        +list_all(): list[EquipmentRequest]
+        +save(request: EquipmentRequest): None
+    }
+}
+
+EquipmentRequest -[hidden]down- RequestRepository
+
+Department "1" -- "0..*" User : сотрудники
+Department "1" -- "0..*" EquipmentRequest : подразделение
+EquipmentCategory "1" -- "0..*" Equipment : категория
+Equipment "1" -- "0..*" EquipmentRequest : оборудование
+User "1" -- "0..*" EquipmentRequest : заявитель
+User "0..1" -- "0..*" EquipmentRequest : исполнитель
+
+User -[norank,dashed]-> UserRole : роль
+EquipmentRequest -[norank,dashed]-> RequestStatus : состояние
+
+RequestService ..> RequestRepository : использует
+RequestService ..> EquipmentRequest : управляет
+RequestRepository ..> EquipmentRequest : сохраняет
+
+@enduml
