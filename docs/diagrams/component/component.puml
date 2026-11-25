@@ -1,0 +1,40 @@
+@startuml
+
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam nodesep 45
+skinparam ranksep 65
+skinparam componentBackgroundColor #F0F5FA
+skinparam componentBorderColor #364A63
+skinparam packageBorderColor #64748B
+skinparam ArrowColor #475569
+skinparam databaseBackgroundColor #F0F5FA
+skinparam databaseBorderColor #364A63
+
+package "Пользовательский интерфейс" {
+    component "Tkinter UI" as UI
+}
+
+package "Бизнес-логика" {
+    component "RequestService" as Service
+    component "Модели предметной\nобласти" as Domain
+}
+
+package "Доступ к данным" {
+    component "«interface»\nRequestRepository" as Repo
+    component "SQLiteRequestRepository" as SqlRepo
+    database "SQLite\nrequests.db" as DB
+}
+
+UI --> Service
+Service --> Domain
+Service --> Repo
+SqlRepo ..|> Repo
+SqlRepo --> DB : sqlite3
+
+@enduml

@@ -1,0 +1,28 @@
+@startuml
+
+left to right direction
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "DejaVu Sans"
+skinparam ArrowColor #475569
+skinparam nodeBackgroundColor #F0F5FA
+skinparam nodeBorderColor #364A63
+skinparam artifactBackgroundColor #F0F5FA
+skinparam artifactBorderColor #364A63
+skinparam databaseBackgroundColor #F0F5FA
+skinparam databaseBorderColor #364A63
+
+actor "Пользователь системы" as User
+
+node "Рабочий компьютер\nWindows" as Workstation {
+    node "Python 3.14" as Runtime {
+        artifact "equipment_requests\nTkinter UI\nRequestService\nМодели домена\nSQLiteRequestRepository" as App
+    }
+
+    database "requests.db\nSQLite" as DB
+}
+
+User --> App : запуск и работа
+App --> DB : sqlite3
+
+@enduml
