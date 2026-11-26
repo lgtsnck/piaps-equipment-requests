@@ -23,6 +23,7 @@ package "Предметная область" {
         +id: int
         +full_name: str
         +role: UserRole
+        +department_id: int
         +has_role(role: UserRole): bool
     }
 
@@ -40,17 +41,21 @@ package "Предметная область" {
     class Equipment {
         +id: int
         +name: str
+        +category_id: int
     }
 
     class EquipmentRequest {
         +id: int
+        +applicant_id: int
+        +department_id: int
+        +equipment_id: int
         +created_at: datetime
         +quantity: int
         +justification: str
         +status: RequestStatus
-        +assigned_specialist_id: int [0..1]
-        +decision_reason: str [0..1]
-        +completion_result: str [0..1]
+        +assigned_specialist_id: int | None
+        +decision_reason: str | None
+        +completion_result: str | None
         +update_details(quantity: int, justification: str): None
         +assign_specialist(specialist_id: int): None
         +can_transition_to(next: RequestStatus): bool
@@ -71,6 +76,11 @@ package "Предметная область" {
 
 package "Бизнес-логика" {
     class RequestService {
+        -_repository: RequestRepository
+        -_current_user: User
+        -_users: dict[int, User]
+        -_equipment: dict[int, Equipment]
+        +__init__(repository: RequestRepository, current_user: User, users: Iterable[User], equipment: Iterable[Equipment]): None
         +create_request(applicant_id: int, equipment_id: int, quantity: int, justification: str): EquipmentRequest
         +update_request(id: int, quantity: int, justification: str): None
         +submit_request(id: int): None
@@ -81,12 +91,21 @@ package "Бизнес-логика" {
         +start_processing(id: int): None
         +close_request(id: int, result: str): None
         +get_request(id: int): EquipmentRequest
-        +filter_requests(status: RequestStatus, department_id: int, category_id: int): list[EquipmentRequest]
+        +filter_requests(status: RequestStatus | None = None, department_id: int | None = None, category_id: int | None = None): list[EquipmentRequest]
     }
 }
 
 package "Доступ к данным" {
-    interface RequestRepository {
+    abstract class RequestRepository {
+        {abstract} +add(request: EquipmentRequest): None
+        {abstract} +get_by_id(id: int): EquipmentRequest
+        {abstract} +list_all(): list[EquipmentRequest]
+        {abstract} +save(request: EquipmentRequest): None
+    }
+
+    class SQLiteRequestRepository {
+        -_db_path: Path
+        +__init__(db_path: str | Path): None
         +add(request: EquipmentRequest): None
         +get_by_id(id: int): EquipmentRequest
         +list_all(): list[EquipmentRequest]
@@ -109,5 +128,7 @@ EquipmentRequest -[norank,dashed]-> RequestStatus : состояние
 RequestService ..> RequestRepository : использует
 RequestService ..> EquipmentRequest : управляет
 RequestRepository ..> EquipmentRequest : сохраняет
+
+SQLiteRequestRepository --|> RequestRepository
 
 @enduml
